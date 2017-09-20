@@ -73,8 +73,8 @@ def load_ratings():
         user_id, movie_id, score, timestamp = row.split()
 
         rating = Rating(user_id=int(user_id),
-                         movie_id=int(movie_id),
-                         score=int(score))
+                        movie_id=int(movie_id),
+                        score=int(score))
 
         db.session.add(rating)
 

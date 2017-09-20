@@ -26,6 +26,7 @@ def index():
 
     return render_template('/homepage.html')
 
+
 @app.route('/users')
 def user_list():
     """Show list of users."""
@@ -35,14 +36,16 @@ def user_list():
                            users=users)
 
 
-@app.route('/register', methods=['GET'])
+@app.route('/register')
 def register_form():
     """Shows registration form."""
 
     return render_template('register_form.html')
 
+
 @app.route('/process_registration', methods=['POST'])
 def process_registration():
+    """Checks if user is registered.  If not, adds user to database."""
 
     email = request.form.get('email')
     password = request.form.get('password')
@@ -89,6 +92,7 @@ def process_login():
         flash('{} not found in our database. Please register!'.format(email))
         return redirect('/')
 
+
 @app.route('/process_logout', methods=['POST'])
 def process_logout():
     """Ends current session."""
@@ -97,46 +101,48 @@ def process_logout():
     flash('logged out successfully')
     return redirect('/')
 
+
 @app.route('/users/<user_id>')
 def user_details(user_id):
-    """Displays user details and movies rated by user"""
+    """Displays user details and movies rated by user."""
 
     user = User.query.filter_by(user_id=user_id).first()
     ratings = user.ratings
     age = user.age
     zipcode = user.zipcode
 
-
     return render_template('user_info.html',
-                            user_id=user.user_id,
-                            ratings=ratings,
-                            age=age,
-                            zipcode=zipcode)
+                           user_id=user.user_id,
+                           ratings=ratings,
+                           age=age,
+                           zipcode=zipcode)
+
 
 @app.route('/movies')
 def lists_movies():
     """Displays a list of all the movies."""
 
-    movies = Movie.query.order_by(Movie.title).all()
+    movies = Movie.query.order_by('title').all()
 
     return render_template('movies.html', movies=movies)
 
-@app.route('/movies/<movie_id>')
-def movie_details(movie_id):
-    """Displays movie details"""
 
-    movie = Movie.query.filter_by(movie_id=movie_id).first()
+@app.route('/movies/<int:movie_id>')
+def movie_details(movie_id):
+    """Displays movie details."""
+
+    movie = Movie.query.get(movie_id)
     title = movie.title
     released_at = movie.released_at
     imdb_url = movie.imdb_url
     ratings = movie.ratings
 
     return render_template("movie_info.html",
-                            movie_id=movie.movie_id,
-                            title=title,
-                            released_at=released_at,
-                            imdb_url=imdb_url,
-                            ratings=ratings)
+                           movie_id=movie.movie_id,
+                           title=title,
+                           released_at=released_at,
+                           imdb_url=imdb_url,
+                           ratings=ratings)
 
 
 @app.route('/rate_movie', methods=['POST'])
@@ -150,24 +156,25 @@ def rate_movie():
     movie_id = request.form.get('movie_id')
     user_id = request.form.get('user_id')
 
+    #queries if user exists in database
     existing_rating = Rating.query.filter(Rating.user_id == user_id,
                                           Rating.movie_id == movie_id).first()
     #update existing rating, if true
     if existing_rating:
         existing_rating.score = rating
-
-
+        flash("Rating updated.")
     else:
         new_rating = Rating(user_id=int(user_id),
                             movie_id=int(movie_id),
                             score=rating)
+
+        flash("Rating added.")
 
         db.session.add(new_rating)
 
     db.session.commit()
 
     return redirect('/movies/{}'.format(movie_id))
-
 
 
 if __name__ == "__main__":
@@ -180,7 +187,5 @@ if __name__ == "__main__":
 
     # Use the DebugToolbar
     DebugToolbarExtension(app)
-
-
 
     app.run(port=5000, host='0.0.0.0')

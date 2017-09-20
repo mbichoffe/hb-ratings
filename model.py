@@ -1,6 +1,7 @@
 """Models and database functions for Ratings project."""
 
 from flask_sqlalchemy import SQLAlchemy
+from correlation import pearson
 
 # This is the connection to the PostgreSQL database; we're getting this through
 # the Flask-SQLAlchemy helper library. On this, we can find the `session`
@@ -27,6 +28,7 @@ class User(db.Model):
         """Provide helpful representation when printed."""
 
         return "<User user_id=%s email=%s>" % (self.user_id, self.email)
+
 
 class Movie(db.Model):
     """Movies of ratings website."""
@@ -58,12 +60,12 @@ class Rating(db.Model):
     score = db.Column(db.Integer, nullable=False)
 
     #Define relationship to the user
-    user = db.relationship("User",
-                         backref=db.backref("ratings",
+    user = db.relationship('User',
+                           backref=db.backref("ratings",
                                             order_by=rating_id))
 
     movie = db.relationship('Movie',
-                         backref=db.backref('ratings',
+                            backref=db.backref('ratings',
                                             order_by=rating_id))
 
 

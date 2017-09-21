@@ -1,12 +1,13 @@
 {% extends 'base.html' %}
 
 {% block content %}
-
+<a href='/movies'>Back to Movies List </a>
 <h1>  {{ title }} </h1>
 
 <div> Release date: {{ released_at }} </div><br>
 
 <a href={{ imdb_url }}>IMDB</a><br><br>
+
 
 <!-- allows user rate movie/update rating when logged in -->
 {% if 'user_id' in session %}
@@ -20,20 +21,11 @@
 </form>
 {% endif %}
 
+<p>Average rating: {{ average }}</p>
+{% if prediction %}
+    <p>We predict you will rate this movie {{ prediction }}.</p>
+{% endif %}
 
-
-<table>
-    <tr>
-        <th>User ID</th>
-        <th>Rating</th>
-    </tr>
-    {% for rating in ratings %}
-    <tr>
-        <td><a href='/users/{{ rating.user.user_id }}'>{{ rating.user.user_id }}</a></td>
-        <td>{{ rating.score }} </td>
-    {% endfor %}
-    </tr>
-</table>
 
 <p><a href='/'>Go home!</a></p>
 

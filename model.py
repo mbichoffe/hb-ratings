@@ -29,6 +29,48 @@ class User(db.Model):
 
         return "<User user_id=%s email=%s>" % (self.user_id, self.email)
 
+    def similarity(self, other):
+        """Return pearson rating for user1 compared to user2."""
+
+        user1_ratings = {}
+
+        paired_ratings = []
+
+        for rating in self.ratings:
+            user1_ratings[rating.movie_id] = rating
+
+        for user2_rating in other.ratings:
+            user1_rating = user1_ratings.get(user2_rating.movie_id)
+
+            if user1_rating is not None:
+                paired_ratings.append((user1_rating.score, user2_rating.score))
+
+        if paired_ratings:
+            return pearson(paired_ratings)
+
+        return 0.0
+
+    def predict_rating(self, movie):
+
+        other_ratings = movie.ratings
+
+        similarities = [
+            (self.similarity(other_rating.user), other_rating)
+            for other_rating in other_ratings
+            ]
+
+        similarities.sort(reverse=True)
+
+        similarities = [(sim, r) for sim, r in similarities if sim > 0]
+
+        if not similarities:
+            return None
+
+        numerator = sum([r.score * sim for sim, r in similarities])
+        denominator = sum([sim for sim, r in similarities])
+
+        return numerator / denominator
+
 
 class Movie(db.Model):
     """Movies of ratings website."""
@@ -76,6 +118,7 @@ class Rating(db.Model):
                                                                               self.movie_id,
                                                                               self.user_id,
                                                                               self.score)
+
 
 ##############################################################################
 # Helper functions

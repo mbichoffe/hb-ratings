@@ -137,12 +137,32 @@ def movie_details(movie_id):
     imdb_url = movie.imdb_url
     ratings = movie.ratings
 
+    user_id = session.get('user_id')
+
+    if user_id:
+        user_rating = Rating.query.filter_by(movie_id=movie_id,
+                                             user_id=user_id).first()
+    else:
+        user_rating = None
+
+    #get average rating of movie
+    rating_scores = [r.score for r in ratings]
+    avg_rating = float(sum(rating_scores))/len(rating_scores)
+    prediction = None
+
+    if (not user_rating) and user_id:
+        user = User.query.get(user_id)
+        if user:
+            prediction = user.predict_rating(movie)
+
     return render_template("movie_info.html",
                            movie_id=movie.movie_id,
                            title=title,
                            released_at=released_at,
                            imdb_url=imdb_url,
-                           ratings=ratings)
+                           average=avg_rating,
+                           user_rating=user_rating,
+                           prediction=int(prediction))
 
 
 @app.route('/rate_movie', methods=['POST'])
